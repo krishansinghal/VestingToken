@@ -110,12 +110,13 @@ async function changeNetwork() {
 
      try{
 
-     const totalSupply = await tokenContract.totalSupply();
-
-     const allow = await tokenContract.approve(`${import.meta.env.VITE_VESTING_CONTRACT_ADDRESS}`, totalSupply.toString(), { gasLimit: 300000, from: `${signer.address}`});
-     const success = await allow.wait();
-    
-     if (success.hash) {
+     const alreadyAllowed = await tokenContract.allowance(signer.address, `${import.meta.env.VITE_VESTING_CONTRACT_ADDRESS}`);
+     if (alreadyAllowed === 0) {
+        const totalSupply = await tokenContract.totalSupply();
+        const allow = await tokenContract.approve(`${import.meta.env.VITE_VESTING_CONTRACT_ADDRESS}`, totalSupply.toString(), { gasLimit: 300000, from: `${signer.address}`});
+        const success = await allow.wait();
+     }
+       
         const ifUser = await contract.roles(beneficiaryAddress);
         if (ifUser > 0) {
           alert("Role already added");
@@ -144,10 +145,6 @@ async function changeNetwork() {
               }
           }
         }
-     }
-     else {
-       alert("something went wrong");
-     }
     } catch(e) {
       console.log(e);
     }
